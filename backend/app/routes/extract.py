@@ -9,18 +9,16 @@ import uuid
 import json
 from typing import Optional
 
-from services.document_service import (
-    extract_text_from_file,
-    extract_text_from_docx,
+from backend.services.document_service import (
     extract_text_from_pdf,
+    extract_text_from_docx,
     extract_text_from_xlsx,
     extract_text_from_xls,
     extract_text_from_csv,
-    convert_text_to_csv,
-    convert_text_to_csv_interactive
+    extract_text_from_file
 )
-from utils.file_utils import save_upload_file, get_file_extension
-from app.config import UPLOADS_DIR, OUTPUT_DIR
+from backend.utils.file_utils import save_upload_file, get_file_extension
+from backend.app.config import UPLOADS_DIR, OUTPUT_DIR
 
 # Configuration du logging
 logger = logging.getLogger(__name__)

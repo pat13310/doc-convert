@@ -3,22 +3,25 @@ Point d'entrée principal de l'application FastAPI
 """
 import os
 import logging
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request, BackgroundTasks
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, HTMLResponse
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from datetime import datetime
+import traceback
+import time
+import uuid
 from pathlib import Path
+from datetime import datetime
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Import des configurations
 from .config import APP_CONFIG, CORS_CONFIG, UPLOADS_DIR, OUTPUT_DIR, TEMP_DIR
 
 # Import des routes
 from .routes import convert, extract, pdf_images
-
-# Configuration du logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 # Création de l'application FastAPI
 app = FastAPI(

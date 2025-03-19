@@ -9,9 +9,9 @@ import uuid
 import shutil
 import zipfile
 
-from services.document_service import convert_pdf_to_images
-from utils.file_utils import save_upload_file, clean_temp_files
-from app.config import UPLOADS_DIR, OUTPUT_DIR, TEMP_DIR
+from backend.services.document_service import convert_pdf_to_images
+from backend.utils.file_utils import save_upload_file, clean_temp_files
+from backend.app.config import UPLOADS_DIR, OUTPUT_DIR, TEMP_DIR
 
 # Configuration du logging
 logger = logging.getLogger(__name__)
