@@ -1,0 +1,22 @@
+# Environnement virtuel
+venv/
+env/
+
+# Dossiers temporaires
+temp/
+tmp/
+uploads/
+output/
+
+# Fichiers de cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Fichiers de logs
+*.log
+logs/
