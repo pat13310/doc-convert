@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversion de Documents</title>
+    <link rel="stylesheet" href="/frontend/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Conversion de Documents</h1>
+            <p>Convertissez vos documents entre différents formats</p>
+            <nav class="sub-nav">
+                <a href="/" class="btn btn-secondary">Accueil</a>
+                <a href="/frontend/pages/extract.html" class="btn btn-secondary">Extraction de Texte</a>
+                <a href="/frontend/pages/pdf-to-images.html" class="btn btn-secondary">PDF vers Images</a>
+            </nav>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'docx-to-pdf')">DOCX vers PDF</button>
+            <button class="tab-btn" onclick="openTab(event, 'pdf-to-docx')">PDF vers DOCX</button>
+        </div>
+        
+        <div id="docx-to-pdf" class="tab-content active">
+            <div class="card">
+                <h2>Convertir DOCX vers PDF</h2>
+                <form id="docxToPdfForm" class="upload-form">
+                    <div class="form-group">
+                        <label for="docxFile">Sélectionnez un fichier DOCX</label>
+                        <input type="file" id="docxFile" name="file" accept=".docx,.doc" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Convertir</button>
+                    </div>
+                </form>
+                <div id="docxToPdfProgress" class="progress-container" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text">Conversion en cours...</p>
+                </div>
+                <div id="docxToPdfResult" class="result-container" style="display: none;">
+                    <h3>Conversion terminée !</h3>
+                    <a id="docxToPdfDownload" href="#" class="btn btn-success">Télécharger le PDF</a>
+                </div>
+            </div>
+        </div>
+        
+        <div id="pdf-to-docx" class="tab-content">
+            <div class="card">
+                <h2>Convertir PDF vers DOCX</h2>
+                <form id="pdfToDocxForm" class="upload-form">
+                    <div class="form-group">
+                        <label for="pdfFile">Sélectionnez un fichier PDF</label>
+                        <input type="file" id="pdfFile" name="file" accept=".pdf" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Convertir</button>
+                    </div>
+                </form>
+                <div id="pdfToDocxProgress" class="progress-container" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text">Conversion en cours...</p>
+                </div>
+                <div id="pdfToDocxResult" class="result-container" style="display: none;">
+                    <h3>Conversion terminée !</h3>
+                    <a id="pdfToDocxDownload" href="#" class="btn btn-success">Télécharger le DOCX</a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <div class="contact">
+                <h3>Contact</h3>
+                <p>Pour toute question ou assistance, n'hésitez pas à nous contacter :</p>
+                <button id="contactBtn" class="btn">Nous contacter</button>
+            </div>
+            <div class="copyright">
+                &copy; 2025 Application de Conversion de Documents. Tous droits réservés.
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Modal de contact -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Contactez-nous</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="name">Nom</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn">Envoyer</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Fonction pour gérer les onglets
+        function openTab(evt, tabName) {
+            var i, tabContent, tabButtons;
+            
+            // Masquer tous les contenus d'onglets
+            tabContent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].classList.remove("active");
+            }
+            
+            // Désactiver tous les boutons d'onglets
+            tabButtons = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove("active");
+            }
+            
+            // Afficher l'onglet actif et activer le bouton
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        // Gestion du formulaire DOCX vers PDF
+        document.getElementById('docxToPdfForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('docxFile');
+            if (!fileInput.files[0]) {
+                alert('Veuillez sélectionner un fichier DOCX');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            // Afficher la barre de progression
+            document.getElementById('docxToPdfProgress').style.display = 'block';
+            document.getElementById('docxToPdfResult').style.display = 'none';
+            
+            // Envoyer la requête au serveur
+            fetch('/api/convert/docx-to-pdf', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la conversion');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Créer un lien de téléchargement
+                const url = window.URL.createObjectURL(blob);
+                const downloadLink = document.getElementById('docxToPdfDownload');
+                downloadLink.href = url;
+                downloadLink.download = fileInput.files[0].name.replace('.docx', '.pdf').replace('.doc', '.pdf');
+                
+                // Masquer la progression et afficher le résultat
+                document.getElementById('docxToPdfProgress').style.display = 'none';
+                document.getElementById('docxToPdfResult').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la conversion: ' + error.message);
+                document.getElementById('docxToPdfProgress').style.display = 'none';
+            });
+        });
+        
+        // Gestion du formulaire PDF vers DOCX
+        document.getElementById('pdfToDocxForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('pdfFile');
+            if (!fileInput.files[0]) {
+                alert('Veuillez sélectionner un fichier PDF');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            // Afficher la barre de progression
+            document.getElementById('pdfToDocxProgress').style.display = 'block';
+            document.getElementById('pdfToDocxResult').style.display = 'none';
+            
+            // Envoyer la requête au serveur
+            fetch('/api/convert/pdf-to-docx', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la conversion');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Créer un lien de téléchargement
+                const url = window.URL.createObjectURL(blob);
+                const downloadLink = document.getElementById('pdfToDocxDownload');
+                downloadLink.href = url;
+                downloadLink.download = fileInput.files[0].name.replace('.pdf', '.docx');
+                
+                // Masquer la progression et afficher le résultat
+                document.getElementById('pdfToDocxProgress').style.display = 'none';
+                document.getElementById('pdfToDocxResult').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la conversion: ' + error.message);
+                document.getElementById('pdfToDocxProgress').style.display = 'none';
+            });
+        });
+        
+        // Gestion du modal de contact
+        const modal = document.getElementById('contactModal');
+        const contactBtn = document.getElementById('contactBtn');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        
+        contactBtn.onclick = function() {
+            modal.style.display = 'block';
+        }
+        
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+        
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Configuration EmailJS
+        document.getElementById('contactForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const templateParams = {
+                from_name: document.getElementById('name').value,
+                from_email: document.getElementById('email').value,
+                message: document.getElementById('message').value + "\n\nEmail du client: " + document.getElementById('email').value,
+                to_email: 'xenatronics@gmx.fr'
+            };
+            
+            emailjs.send('default_service', 'template_id', templateParams)
+                .then(function(response) {
+                    alert('Message envoyé avec succès!');
+                    modal.style.display = 'none';
+                    document.getElementById('contactForm').reset();
+                }, function(error) {
+                    alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
+                    console.error('Erreur:', error);
+                });
+        });
+    </script>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("YOUR_USER_ID"); // Remplacer par votre User ID EmailJS
+        })();
+    </script>
+</body>
+</html>

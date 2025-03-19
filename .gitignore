@@ -1,0 +1,57 @@
+# Environnement virtuel Python
+venv/
+env/
+ENV/
+
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Fichiers de distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Fichiers temporaires
+temp/
+tmp/
+uploads/
+output/
+
+# Fichiers de logs
+*.log
+logs/
+
+# Fichiers de configuration locaux
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Fichiers de cache
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Fichiers d'éditeurs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Fichiers spécifiques à Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

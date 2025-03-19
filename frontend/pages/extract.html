@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extraction de Texte</title>
+    <link rel="stylesheet" href="/frontend/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Extraction de Texte</h1>
+            <p>Extrayez facilement le texte de vos documents PDF, DOCX, Excel et plus encore.</p>
+        </header>
+        
+        <nav class="main-nav">
+            <a href="/" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-text">Accueil</div>
+            </a>
+            <a href="/frontend/pages/convert.html" class="nav-item">
+                <div class="nav-icon">🔄</div>
+                <div class="nav-text">Conversion de Documents</div>
+            </a>
+            <a href="/frontend/pages/pdf-to-images.html" class="nav-item">
+                <div class="nav-icon">🖼️</div>
+                <div class="nav-text">PDF vers Images</div>
+            </a>
+        </nav>
+        
+        <section class="content">
+            <div class="form-container">
+                <h2>Téléchargez votre document</h2>
+                <div class="form-group">
+                    <label for="file">Sélectionnez un fichier (PDF, DOCX, Excel, etc.)</label>
+                    <input type="file" id="file" name="file" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt">
+                </div>
+                
+                <button class="btn" id="extractBtn">Extraire le texte</button>
+            </div>
+            
+            <div class="result" id="result" style="display: none;">
+                <h2>Texte extrait :</h2>
+                <div class="actions">
+                    <button class="btn" id="copyBtn">Copier le texte</button>
+                    <button class="btn" id="downloadBtn">Télécharger au format TXT</button>
+                    <button class="btn" id="convertToCsvBtn">Convertir en CSV</button>
+                </div>
+                <pre id="extractedText"></pre>
+            </div>
+        </section>
+        
+        <footer>
+            <div class="contact">
+                <h3>Contact</h3>
+                <p>Pour toute question ou assistance, n'hésitez pas à nous contacter :</p>
+                <button id="contactBtn" class="btn">Nous contacter</button>
+            </div>
+            <div class="copyright">
+                &copy; 2025 Application de Conversion de Documents. Tous droits réservés.
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Modal de contact -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Contactez-nous</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="name">Nom</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn">Envoyer</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('file');
+            const extractBtn = document.getElementById('extractBtn');
+            const resultDiv = document.getElementById('result');
+            const extractedTextPre = document.getElementById('extractedText');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const convertToCsvBtn = document.getElementById('convertToCsvBtn');
+            
+            extractBtn.addEventListener('click', async function() {
+                if (!fileInput.files.length) {
+                    alert('Veuillez sélectionner un fichier');
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                try {
+                    // Afficher le message de chargement
+                    window.showLoading('Extraction du texte en cours...');
+                    
+                    const response = await fetch('/api/extract-text/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    // Masquer le message de chargement
+                    window.hideLoading();
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    extractedTextPre.textContent = data.text;
+                    resultDiv.style.display = 'block';
+                    
+                    // Faire défiler jusqu'au résultat
+                    resultDiv.scrollIntoView({ behavior: 'smooth' });
+                } catch (error) {
+                    window.hideLoading();
+                    console.error('Erreur:', error);
+                    alert(`Erreur lors de l'extraction du texte: ${error.message}`);
+                }
+            });
+            
+            copyBtn.addEventListener('click', function() {
+                const text = extractedTextPre.textContent;
+                navigator.clipboard.writeText(text)
+                    .then(() => alert('Texte copié dans le presse-papiers'))
+                    .catch(err => alert('Erreur lors de la copie du texte: ' + err));
+            });
+            
+            downloadBtn.addEventListener('click', function() {
+                const text = extractedTextPre.textContent;
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'texte_extrait.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            convertToCsvBtn.addEventListener('click', async function() {
+                const text = extractedTextPre.textContent;
+                
+                if (!text || text.trim() === '') {
+                    alert('Aucun texte à convertir');
+                    return;
+                }
+                
+                try {
+                    // Afficher le message de chargement
+                    window.showLoading('Conversion en CSV en cours...');
+                    
+                    const formData = new FormData();
+                    formData.append('text', text);
+                    formData.append('delimiter', 'auto');
+                    formData.append('has_header', 'true');
+                    
+                    const response = await fetch('/api/text-to-csv/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    // Masquer le message de chargement
+                    window.hideLoading();
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Télécharger le fichier CSV
+                        const a = document.createElement('a');
+                        a.href = data.download_url;
+                        a.download = 'texte_converti.csv';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    } else {
+                        alert(`Erreur lors de la conversion: ${data.message}`);
+                    }
+                } catch (error) {
+                    window.hideLoading();
+                    console.error('Erreur:', error);
+                    alert(`Erreur lors de la conversion en CSV: ${error.message}`);
+                }
+            });
+        });
+    </script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("YOUR_USER_ID"); // Remplacer par votre User ID EmailJS
+        })();
+        
+        document.getElementById('contactForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const templateParams = {
+                from_name: document.getElementById('name').value,
+                from_email: document.getElementById('email').value,
+                message: document.getElementById('message').value + "\n\nEmail du client: " + document.getElementById('email').value,
+                to_email: 'xenatronics@gmx.fr'
+            };
+            
+            emailjs.send('default_service', 'template_id', templateParams)
+                .then(function(response) {
+                    alert('Message envoyé avec succès!');
+                    document.getElementById('contactModal').style.display = 'none';
+                    document.getElementById('contactForm').reset();
+                }, function(error) {
+                    alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
+                    console.error('Erreur:', error);
+                });
+        });
+    </script>
+</body>
+</html>
