@@ -7,20 +7,13 @@ import sys
 import os
 from pathlib import Path
 import traceback
+from http.server import BaseHTTPRequestHandler
 
 # Ajouter le répertoire parent au chemin Python pour pouvoir importer le module principal
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-# Importer l'application FastAPI depuis le fichier principal
-try:
-    from backend.app.main import app
-except Exception as e:
-    # Créer une application de secours en cas d'erreur d'importation
-    app = FastAPI()
-    
-    @app.get("/api/status")
-    async def status():
-        return {"status": "error", "message": f"Erreur d'importation: {str(e)}"}
+# Créer une application FastAPI
+app = FastAPI()
 
 # Intercepter les erreurs pour les routes API
 @app.middleware("http")
@@ -75,8 +68,34 @@ async def catch_exceptions_middleware(request: Request, call_next):
             status_code=500
         )
 
+# Route API pour l'extraction de texte
+@app.post("/api/extract-text")
+async def extract_text_endpoint():
+    return JSONResponse(
+        status_code=501,
+        content={
+            "error": "Fonctionnalité non disponible",
+            "message": "L'extraction de texte n'est pas disponible dans l'environnement Vercel. Veuillez utiliser l'application en local pour accéder à cette fonctionnalité.",
+            "detail": "Les fonctions serverless de Vercel ont des limitations qui empêchent certaines opérations comme la manipulation de fichiers."
+        }
+    )
+
+# Route API pour la conversion de documents
+@app.post("/api/convert-docx-to-pdf")
+@app.post("/api/convert-pdf-to-docx")
+@app.post("/api/convert-pdf-to-images")
+async def convert_document_endpoint():
+    return JSONResponse(
+        status_code=501,
+        content={
+            "error": "Fonctionnalité non disponible",
+            "message": "La conversion de documents n'est pas disponible dans l'environnement Vercel. Veuillez utiliser l'application en local pour accéder à cette fonctionnalité.",
+            "detail": "Les fonctions serverless de Vercel ont des limitations qui empêchent certaines opérations comme la manipulation de fichiers."
+        }
+    )
+
 # Définir une route pour la racine qui renvoie une page HTML
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def vercel_root():
     """
     Route racine pour Vercel qui renvoie la page d'accueil
@@ -193,5 +212,14 @@ async def vercel_root():
         </html>
         """)
 
-# Nécessaire pour Vercel Serverless Functions
-handler = app
+# Classe pour gérer les requêtes HTTP pour Vercel
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write('Hello, world!'.encode())
+
+# Fonction pour gérer les requêtes pour Vercel
+def handler(req, res):
+    return app
